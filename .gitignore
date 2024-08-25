@@ -30,3 +30,18 @@
 *.exe
 *.out
 *.app
+
+# Compiled Python bytecode
+*.py[cod]
+
+# Temporary files
+*.swo
+*.swp
+
+# Log files
+*.log
+
+# Folders
+release/
+lib/fmt-6.2.1/
+
