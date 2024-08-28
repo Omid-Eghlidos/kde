@@ -6,7 +6,6 @@
 #include <fstream>
 
 
-// Class to store specifications of the coarse grained system
 CG_data::CG_data(const Inputs &i, const LMP_data &d): _inputs(i), _data(d) {
     fmt::print("\n################## Coarse Graining ######################\n");
     _make_beads();
@@ -30,22 +29,26 @@ void CG_data::_find_beads_of_type(char bead_name, BeadType bead) {
     // Go through all the atoms and find the ones that matches the bead definition
     int bead_type_count = 0;
     std::vector<bool> visited(_data.atom_types.size(), false);
-    for (size_t i=0; i < _data.chains.size(); i++) {
-        for (size_t j=0; j < _data.chains[i].size(); j++) {
+    for (size_t i = 0; i < _data.chains.size(); i++) {
+        for (size_t j = 0; j < _data.chains[i].size(); j++) {
             std::vector<int> potential_bead(bead.atom_types.size());
-            // Continue if already visited this atom or the type of this atom
-            // is not equal to the first one in the bead
+            std::vector<int> potential_bead_types(bead.atom_types.size(), -1);
+            // Skip if visited or its type is not the same as given bead's 1st atom
             int a = _data.chains[i][j];
-            if (visited[a] || (bead.atom_types[0] != _data.atom_types[a])) continue;
+            if (visited[a] || (bead.atom_types[0] != _data.atom_types[a]))
+                continue;
             potential_bead[0] = a;
-            for (size_t k=1; k < bead.atom_types.size(); k++) {
-                for (size_t l=0; l < _data.bond_table[a].size(); l++) {
-                    int b = _data.bond_table[a][l];
-                    if (!visited[b] && bead.atom_types[k] == _data.atom_types[b]) {
-                        potential_bead[k] = b;
-                        a = b;
-                        visited[b] = true;
-                    }
+            potential_bead_types[0] = _data.atom_types[a];
+            size_t k = 1;
+            for (size_t l = 0; l < _data.bond_table[a].size(); l++) {
+                if (k >= bead.atom_types.size())
+                    break;
+                int b = _data.bond_table[a][l];
+                if (!visited[b] && bead.atom_types[k] == _data.atom_types[b]) {
+                    potential_bead[k] = b;
+                    a = b;
+                    visited[b] = true;
+                    k++;
                 }
             }
             if (potential_bead.size() == bead.atom_types.size()) {
@@ -53,18 +56,15 @@ void CG_data::_find_beads_of_type(char bead_name, BeadType bead) {
                 bead_.id = beads.size();
                 bead_.chain = i;
                 bead_.type = bead.type;
-                bead_.name = bead_name;
-                bead_.atoms = potential_bead;
-                for (auto b : potential_bead) {
-                    bead_.charge += _data.atom_charges[b];
-                }
-                bead_.atom_weights = bead.weights;
-                bead_.coords = _find_beads_coords(potential_bead, bead.weights);
                 // Check it does not already exist
                 if (!(std::find(bead_types.begin(), bead_types.end()
                                           , bead.type) != bead_types.end())) {
                     bead_types.push_back(bead.type);
                 }
+                bead_.name = bead_name;
+                bead_.atoms = potential_bead;
+                bead_.atom_weights = bead.weights;
+                bead_.coords = _find_beads_coords(potential_bead, bead.weights);
                 beads.push_back(bead_);
                 bead_type_count++;
             }
@@ -116,12 +116,11 @@ void CG_data::_identify_beads_bonds() {
 
 
 bool CG_data::_are_bonded(std::vector<int> b1_atoms, std::vector<int> b2_atoms) {
-    for (auto atom1 : b1_atoms) {
-        for (auto bonded_to_atom1 : _data.bond_table[atom1]) {
-            for (auto atom2 : b2_atoms) {
-                if (bonded_to_atom1 == atom2) {
+    for (auto i : b1_atoms) {
+        for (auto j : b2_atoms) {
+            if (std::find(_data.bond_table[i].begin(), _data.bond_table[i].end(), j) !=
+                                                       _data.bond_table[j].end()) {
                     return true;
-                }
             }
         }
     }
@@ -130,13 +129,7 @@ bool CG_data::_are_bonded(std::vector<int> b1_atoms, std::vector<int> b2_atoms) 
 
 
 void CG_data::_bond_types(int i, int j) {
-    std::tuple<int, int> type;
-    if (i < j) {
-        type = std::make_tuple(i, j);
-    }
-    else {
-        type = std::make_tuple(j, i);
-    }
+    std::tuple<int, int> type = (i < j) ? std::make_tuple(i, j) : std::make_tuple(j, i);
     // Check it does not already exist
     if (!(std::find(bead_bond_types.begin(), bead_bond_types.end(), type) !=
                                                       bead_bond_types.end())) {
@@ -154,7 +147,7 @@ int CG_data::get_bond_type(int i, int j) const {
     else {
         type = std::make_tuple(beads[j].type, beads[i].type);
     }
-    for (bbt=0; bbt<bead_bond_types.size(); bbt++) {
+    for (bbt = 0; bbt < bead_bond_types.size(); bbt++) {
         if (type == bead_bond_types[bbt]) {
             break;
         }

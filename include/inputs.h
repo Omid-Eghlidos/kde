@@ -2,50 +2,69 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <thread>
 
-
+/**
+ * @struct BeadType
+ * @brief Represents a bead type in the coarse-grained system.
+ *
+ * The BeadType structure defines a bead type by specifying the atom types
+ * that make up the bead and the corresponding weights for coarse-graining.
+ */
 struct BeadType {
-    // Bead type
+    //! Bead type
     int type;
-    // Atom types that make up the bead
+    //! Atom types that make up the bead
     std::vector<int> atom_types;
-    // CG weights for each atom inside the bead
+    //! CG weights for each atom inside the bead
     std::vector<double> weights;
 };
 
 
-// Class to store the input parameters
+/**
+ * @class Inputs
+ * @brief Manages the input parameters for the coarse-grained simulation.
+ *
+ * The Inputs class stores all the input parameters required to run the
+ * coarse-grained simulation, including file paths, type definitions, and
+ * process settings.
+ */
 class Inputs {
     public:
+        /**
+         * @brief Constructs an Inputs object by reading parameters from a file.
+         *
+         * @param path The path to the file containing input parameters.
+         */
         Inputs(std::string path);
-        // Inputs/outputs settings
-        // LAMMPS format data file
+
+        //! LAMMPS format data file
         std::string lmp_data;
-        // LAMMPS format dump file
+        //! LAMMPS format dump file
         std::string lmp_dump;
-        // Output files tag
+        //! Output files tag (default: "CG")
         std::string tag = "CG";
-        // Type definition settings
-        // System phase
+        //! System phase (true if amorphous, false if crystalline)
         bool amorphous = true;
-        // Input file atom types definition
+        //! Input file atom types definition
         std::map<std::string, int> atom_types;
-        // Bead types definition
+        //! Bead types definition
         std::map<char, BeadType> bead_types;
-        // Distribution settings
-        // Process method (using <thread> library)
-        std::string process = "parallel";
-        // RDF 4D vector settings : [min] [max] [steps] [kde_bandwidth]
+        //! Enable or disable parallel processing (default: true)
+        bool parallel = true;
+        //! Number of threads to use for parallel processing (default: hardware concurrency)
+        int num_threads = std::thread::hardware_concurrency();
+        //! RDF settings : [min] [max] [steps] [kde_bandwidth]
         std::vector<double> rdf;
-        // Special bonds 3D vector : [1st neighbor] [second neighbor] [third neighbor]
+        //! Special bonds settings : [1st neighbor] [2nd neighbor] [3rd neighbor]
         std::vector<int> special_bonds;
-        // BDF 4D vector settings : [min] [max] [steps] [kde_bandwidth]
+        //! BDF settings : [min] [max] [steps] [kde_bandwidth]
         std::vector<double> bdf;
-        // ADF 4D vector settings : [min] [max] [steps] [kde_bandwidth]
+        //! ADF settings : [min] [max] [steps] [kde_bandwidth]
         std::vector<double> adf;
-        // TDF 4D vector settings : [min] [max] [steps] [kde_bandwidth]
+        //! TDF settings : [min] [max] [steps] [kde_bandwidth]
         std::vector<double> tdf;
-        // IDF 4D vector settings : [min] [max] [steps] [kde_bandwidth]
+        //! IDF settings : [min] [max] [steps] [kde_bandwidth]
         std::vector<double> idf;
 };
 

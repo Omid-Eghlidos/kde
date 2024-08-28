@@ -16,6 +16,9 @@
 *.dylib
 *.dll
 
+# Compiled Doxygen html file
+*.html
+
 # Fortran module files
 *.mod
 *.smod
@@ -44,4 +47,8 @@
 # Folders
 release/
 lib/fmt-6.2.1/
+docs/
+
+# Large files
+*.lammpstrj
 

@@ -9,7 +9,15 @@
 #include <algorithm>
 #include <tuple>
 
-// Returns true if the string starts with the substring.
+
+/**
+ * @brief Checks if a string starts with a given substring.
+ *
+ * @param s The string to check.
+ * @param beg The substring to check at the beginning of the string.
+ * @return true If the string starts with the substring.
+ * @return false If the string does not start with the substring.
+ */
 inline bool startswith(const std::string &s, const char *beg) {
     if (s.size()==0 && *beg != '\0') return false;
     for (size_t i=0; i<s.size(); ++i) {
@@ -19,7 +27,15 @@ inline bool startswith(const std::string &s, const char *beg) {
     return true;
 }
 
-//! Writes a vector to the console.
+
+/**
+ * @brief Overloads the output stream operator to print vectors.
+ *
+ * @tparam T The type of elements in the vector.
+ * @param o The output stream.
+ * @param x The vector to print.
+ * @return std::ostream& The modified output stream.
+ */
 template<class T>
 std::ostream& operator<<(std::ostream& o, std::vector<T> x) {
     o << "{";
@@ -28,14 +44,27 @@ std::ostream& operator<<(std::ostream& o, std::vector<T> x) {
     return o << "}\n";
 }
 
-//! Reads the next line of a file.
+
+/**
+ * @brief Reads the next line from a file stream.
+ *
+ * @param fid The input file stream.
+ * @return std::string The line read from the file.
+ */
 inline std::string read_line(std::istream &fid) {
     std::string line;
     getline(fid, line);
     return line;
 }
 
-//! Converts a string to type T.
+
+/**
+ * @brief Converts a string to a specified type.
+ *
+ * @tparam T The type to convert the string to.
+ * @param s The string to convert.
+ * @return T The converted value.
+ */
 template <typename T>
 inline T from_string(const std::string &s) {
     std::istringstream ss(s);
@@ -43,23 +72,51 @@ inline T from_string(const std::string &s) {
     return t;
 }
 
-//! Extracts a tuple of arbitrary types from a vector of strings at an index.
+
+/**
+ * @brief Extracts a tuple of arbitrary types from a vector of strings at a given index.
+ *
+ * @tparam A The types of the tuple elements.
+ * @param args The vector of strings.
+ * @param index The index from where to start extracting.
+ * @return std::tuple<A...> The extracted tuple.
+ */
 template<typename... A>
 std::tuple<A...> args_to_tuple(std::vector<std::string> args, int index) {
     auto end = args.begin() + index + sizeof...(A);
     return std::make_tuple(from_string<A>(*--end)...);
 }
 
-//! Shortcut to convert strings to unsigned.
+
+/**
+ * @brief Converts a string to an unsigned integer.
+ *
+ * @param s The string to convert.
+ * @return unsigned The converted unsigned integer.
+ */
 inline unsigned str2u32(const std::string &s) {
     return from_string<unsigned>(s);
 }
-//! Shortcut to convert strings to double.
+
+
+/**
+ * @brief Converts a string to a double.
+ *
+ * @param s The string to convert.
+ * @return double The converted double.
+ */
 inline double str2dbl(const std::string &s) {
     return from_string<double>(s);
 }
 
-//! Returns a copy of the string without trailing/preceding whitespace.
+
+/**
+ * @brief Trims leading and trailing whitespace from a string.
+ *
+ * @param s The string to trim.
+ * @param ws The characters considered as whitespace (default: " \t\n\r").
+ * @return std::string The trimmed string.
+ */
 inline std::string trim(std::string s, std::string ws=" \t\n\r") {
     if (s.empty()) return s;
     size_t a=s.find_first_not_of(ws);
@@ -67,7 +124,15 @@ inline std::string trim(std::string s, std::string ws=" \t\n\r") {
     return s.substr(a, b-a);
 }
 
-//! Returns any part of str that occurs before any characters in spl.
+
+/**
+ * @brief Returns the part of a string before the first occurrence of any
+ * character in a given set.
+ *
+ * @param str The string to process.
+ * @param spl The set of characters to split on.
+ * @return std::string The substring before the first occurrence of any character in spl.
+ */
 inline std::string before(std::string str, std::string spl) {
     auto pos = str.find_first_of(spl);
     if (pos == std::string::npos) return str;
@@ -75,7 +140,13 @@ inline std::string before(std::string str, std::string spl) {
 }
 
 
-//! Splits a string like the python function.
+/**
+ * @brief Splits a string into a vector of substrings, similar to Python's split function.
+ *
+ * @param s The string to split.
+ * @param delims The delimiters to split on (default: " \t\n\r").
+ * @return std::vector<std::string> The vector of substrings.
+ */
 inline std::vector<std::string> split(std::string s, std::string delims=" \t\n\r")
 {
     if (s.empty()) return {};
@@ -90,7 +161,13 @@ inline std::vector<std::string> split(std::string s, std::string delims=" \t\n\r
     return pieces;
 }
 
-//! Joins a vector, string back together.
+
+/**
+ * @brief Joins a vector of strings into a single string, with a space separator.
+ *
+ * @param v The vector of strings to join.
+ * @return std::string The joined string.
+ */
 inline std::string join(const std::vector<std::string> &v)
 {
     if (v.empty()) return "";
@@ -99,7 +176,15 @@ inline std::string join(const std::vector<std::string> &v)
     return s;
 }
 
-//! Joins strings together from iterators to strings.
+
+/**
+ * @brief Joins strings together from iterators to strings, with a space separator.
+ *
+ * @tparam _Iter The iterator type.
+ * @param beg The beginning iterator.
+ * @param end The ending iterator.
+ * @return std::string The joined string.
+ */
 template <class _Iter>
 inline std::string join(_Iter beg, _Iter end) {
     if (beg == end) return "";
@@ -108,7 +193,16 @@ inline std::string join(_Iter beg, _Iter end) {
     return s;
 }
 
-//! Converts anything to a string
+
+/**
+ * @brief Converts a value to a string with optional width and precision.
+ *
+ * @tparam T The type of the value.
+ * @param x The value to convert to a string.
+ * @param width The width of the string (default: -1, no specific width).
+ * @param precision The precision of the string (default: -1, no specific precision).
+ * @return std::string The string representation of the value.
+ */
 template<typename T>
 inline std::string make_string(const T& x, int width=-1, int precision=-1) {
     std::ostringstream o;
@@ -118,14 +212,27 @@ inline std::string make_string(const T& x, int width=-1, int precision=-1) {
     return o.str();
 }
 
-//! Returns a copy of the string in lowercase.
+
+/**
+ * @brief Converts a string to lowercase.
+ *
+ * @param s The string to convert.
+ * @return std::string The lowercase string.
+ */
 inline std::string lower(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),
             static_cast<int(*)(int)> (tolower));
     return s;
 }
 
-//! Returns the index of the closing brace matching index i (or string::npos).
+
+/**
+ * @brief Finds the matching closing brace in a string.
+ *
+ * @param s The string to search.
+ * @param i The index of the opening brace.
+ * @return size_t The index of the matching closing brace, or std::string::npos if not found.
+ */
 inline size_t find_matching_brace(const std::string &s, size_t i) {
     char open = s[i];
     char close = ')';

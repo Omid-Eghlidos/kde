@@ -1,4 +1,4 @@
-#include "lammps_dump.h"
+#include "lmp_dump.h"
 #include "string_tools.h"
 #include <fmt/format.h>
 #include <iostream>
@@ -11,10 +11,12 @@ LMP_dump::LMP_dump(std::string path) {
         std::cout << "Dump file does not exist.\n";
         exit(0);
     }
+    double xlo = 0, xhi, ylo = 0, yhi, zlo = 0, zhi;
     while(fid) {
         auto line = read_line(fid);
         auto args = split(line);
-        if (args.empty()) continue;
+        if (args.empty())
+            continue;
         else if (line == "ITEM: TIMESTEP") {
             int n = from_string<int>(read_line(fid));
             timesteps.push_back(n);
@@ -25,7 +27,6 @@ LMP_dump::LMP_dump(std::string path) {
         else if (startswith(line, "ITEM: BOX BOUNDS")) {
             MatrixXd timestep_box = MatrixXd::Zero(3, 3);
             MatrixXd timestep_bounds = MatrixXd::Zero(2, 3);
-            double xlo, xhi, ylo, yhi, zlo, zhi;
             bool triclinic = false;
             for (auto arg : args) {
                 if (arg == "xy" || arg == "xz" || arg == "yz") {
@@ -107,12 +108,11 @@ LMP_dump::LMP_dump(std::string path) {
                 args = split(line);
                 int num_args = args.size();
                 int i = from_string<int>(args[0]) - 1;
-                timestep_coords(i, 0) = str2dbl(args[num_args - 3]);
-                timestep_coords(i, 1) = str2dbl(args[num_args - 2]);
-                timestep_coords(i, 2) = str2dbl(args[num_args - 1]);
-                Vector3d ds = (box.back().inverse() * timestep_coords.row(i))
-                                                     .array().round().matrix();
-                timestep_coords.row(i) -= box.back() * ds;
+                timestep_coords(i, 0) = str2dbl(args[num_args - 3]) - xlo;
+                timestep_coords(i, 1) = str2dbl(args[num_args - 2]) - ylo;
+                timestep_coords(i, 2) = str2dbl(args[num_args - 1]) - zlo;
+                Vector3d xs = (box.back().inverse() * timestep_coords.row(i).transpose());
+                timestep_coords.row(i) -= (box.back() * xs.array().floor().matrix());
                 counter++;
             }
             atom_coords.push_back(timestep_coords);

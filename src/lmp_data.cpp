@@ -1,4 +1,4 @@
-#include "lammps_data.h"
+#include "lmp_data.h"
 #include "string_tools.h"
 #include <fmt/format.h>
 #include <iostream>
@@ -71,9 +71,8 @@ LMP_data::LMP_data(const Inputs &inputs) : _inputs(inputs) {
                     atom_coords(i,0) = from_string<double>(args[4]);
                     atom_coords(i,1) = from_string<double>(args[5]);
                     atom_coords(i,2) = from_string<double>(args[6]);
-                    Vector3d ds = (box.inverse() * atom_coords.row(i)).array()
-                                                             .round().matrix();
-                    atom_coords.row(i) -= box * ds;
+                    Vector3d xs = (box.inverse() * atom_coords.row(i).transpose());
+                    atom_coords.row(i) -= (box * xs.array().floor().matrix());
                 }
             }
         }
@@ -98,24 +97,7 @@ LMP_data::LMP_data(const Inputs &inputs) : _inputs(inputs) {
         std::sort(b.begin(), b.end());
     }
     fmt::print("Read {} atoms from {}.\n", atom_coords.rows(), _inputs.lmp_data);
-    //if (!_inputs.amorphous) remove_bonds_across_pbc();
     _find_molecules();
-}
-
-
-void LMP_data::remove_bonds_across_pbc() {
-    const auto max_bond_length = 2.0;
-    int bonds_removed = 0;
-    for (size_t i=0; i<bond_table.size(); ++i) {
-        for (size_t j = 0; j < bond_table[i].size(); j++) {
-            auto rij = (atom_coords.row(i) - atom_coords.row(bond_table[i][j])).norm();
-            if (rij > max_bond_length) {
-                bond_table[i].erase(bond_table[i].begin() + j);
-                bonds_removed += 1;
-            }
-        }
-    }
-    fmt::print("Deleted {} bonds across PBC.\n", bonds_removed);
 }
 
 
