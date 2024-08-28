@@ -121,6 +121,12 @@ void KDE::calculate_bdf(int timestep) {
                 Vector3d r = _unwrapped_bond_vector(timestep, i, j);
                 // Determine the bond type
                 auto bond_type = _determine_bond_type(i, j);
+                // Initialize the count if the type already does not exist
+                if (!(bond_type_count_.find(bond_type) != bond_type_count_.end())) {
+                    bond_type_count_[bond_type] = 0;
+                }
+                bond_type_count_[bond_type] += 1;
+                // Initialize local bdf and store the current type distribution
                 if (!(bdf_.find(bond_type) != bdf_.end())) {
                     bdf_[bond_type] = ArrayXd::Zero(lengths.rows());
                 }
@@ -186,7 +192,7 @@ void KDE::calculate_adf(int timestep) {
                 angle_type_count_[angle_type] = 0;
             }
             angle_type_count_[angle_type] += 1;
-            // Initialize local tdf and store the current type distribution
+            // Initialize local adf and store the current type distribution
             if (!(adf_.find(angle_type) != adf_.end())) {
                 adf_[angle_type] = ArrayXd::Zero(angles.rows());
             }
