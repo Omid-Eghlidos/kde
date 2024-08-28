@@ -116,11 +116,12 @@ void CG_data::_identify_beads_bonds() {
 
 
 bool CG_data::_are_bonded(std::vector<int> b1_atoms, std::vector<int> b2_atoms) {
-    for (auto i : b1_atoms) {
-        for (auto j : b2_atoms) {
-            if (std::find(_data.bond_table[i].begin(), _data.bond_table[i].end(), j) !=
-                                                       _data.bond_table[j].end()) {
+    for (auto atom1 : b1_atoms) {
+        for (auto bonded_to_atom1 : _data.bond_table[atom1]) {
+            for (auto atom2 : b2_atoms) {
+                if (bonded_to_atom1 == atom2) {
                     return true;
+                }
             }
         }
     }
@@ -129,7 +130,13 @@ bool CG_data::_are_bonded(std::vector<int> b1_atoms, std::vector<int> b2_atoms) 
 
 
 void CG_data::_bond_types(int i, int j) {
-    std::tuple<int, int> type = (i < j) ? std::make_tuple(i, j) : std::make_tuple(j, i);
+    std::tuple<int, int> type;
+    if (i < j) {
+        type = std::make_tuple(i, j);
+    }
+    else {
+        type = std::make_tuple(j, i);
+    }
     // Check it does not already exist
     if (!(std::find(bead_bond_types.begin(), bead_bond_types.end(), type) !=
                                                       bead_bond_types.end())) {
@@ -265,7 +272,7 @@ void CG_data::_identify_beads_impropers() {
             for (auto i : bead_bonds[j]) {
                 for (auto k : bead_bonds[j]) {
                     for (auto l : bead_bonds[j]) {
-                        if (i < k && k < l){
+                        if (i < j && i < l && l < k && j < k){
                             bead_impropers.push_back(std::make_tuple(i, j, k, l));
                             _improper_types(i, j, k, l);
                         }
@@ -282,19 +289,15 @@ void CG_data::_identify_beads_impropers() {
 void CG_data::_improper_types(int i, int j, int k, int l) {
     std::tuple<int, int, int, int> type;
     // TODO: Needs to be double checked
-    if (beads[i].type < beads[l].type) {
+    if (beads[i].type == beads[j].type && beads[j].type == beads[l].type &&
+        beads[k].type > beads[l].type) {
         type = std::make_tuple(beads[i].type, beads[j].type,
                                beads[k].type, beads[l].type);
-    }
-    if (beads[i].type == beads[j].type && beads[j].type == beads[k].type &&
-        beads[j].type < beads[k].type) {
-        type = std::make_tuple(beads[i].type, beads[j].type,
-                               beads[k].type, beads[l].type);
-    }
-    // Check it does not already exist
-    if (!(std::find(bead_improper_types.begin(), bead_improper_types.end(), type)
-                                            != bead_improper_types.end())) {
-        bead_improper_types.push_back(type);
+        // Check it does not already exist
+        if (!(std::find(bead_improper_types.begin(), bead_improper_types.end(), type)
+                                                != bead_improper_types.end())) {
+            bead_improper_types.push_back(type);
+        }
     }
 }
 
