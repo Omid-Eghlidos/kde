@@ -45,12 +45,49 @@ class Process {
         IDF idfs;
     private:
         /**
-         * @brief Runs the calculations for the distribution functions over all timesteps.
+         * @brief Runs the calculations for the radial distribution functions (RDFs)
+         * over all timesteps.
          *
-         * This function manages the calculation of the distribution functions using KDE
-         * for each timestep and stores the results.
+         * This function manages the calculation of the RDFs using KDE for each
+         * timestep and stores the results.
          */
-        void _run();
+        void _compute_rdf();
+
+        /**
+         * @brief Runs the calculations for the bond distribution functions (BDFs)
+         * over all timesteps.
+         *
+         * This function manages the calculation of the BDFs using KDE for each
+         * timestep and stores the results.
+         */
+        void _compute_bdf();
+
+        /**
+         * @brief Runs the calculations for the bond angle distribution functions (ADFs)
+         * over all timesteps.
+         *
+         * This function manages the calculation of the ADFs using KDE for each
+         * timestep and stores the results.
+         */
+        void _compute_adf();
+
+        /**
+         * @brief Runs the calculations for the torsion angle distribution functions (TDFs)
+         * over all timesteps.
+         *
+         * This function manages the calculation of the TDFs using KDE for each
+         * timestep and stores the results.
+         */
+        void _compute_tdf();
+
+        /**
+         * @brief Runs the calculations for the improper angle distribution functions (IDFs)
+         * over all timesteps.
+         *
+         * This function manages the calculation of the IDFs using KDE for each
+         * timestep and stores the results.
+         */
+        void _compute_idf();
 
         /**
          * @brief Averages the distribution functions over all timesteps.
@@ -61,6 +98,17 @@ class Process {
          */
         template <class T>
         void _timesteps_average(const std::vector<T> &_pdfs, T &pdfs);
+
+        /**
+         * @brief Calculates the wall time for processing of a function
+         *
+         * This function calculate the amount of wall time for running a function.
+         *
+         * @tparam Time The timepoint class
+         * @param t_start Starting time of the computation right before a function call.
+         */
+        template <typename Time>
+        void _compute_wall_time(const Time& t_start);
 
         //! Reference to the input parameters
         const Inputs &_inputs;

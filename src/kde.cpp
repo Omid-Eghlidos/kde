@@ -39,18 +39,19 @@ KDE::KDE(const Inputs &inputs, const LMP_data &data, const LMP_dump &dump,
 
 
 void KDE::calculate_rdf(int timestep) {
+    // Final rdf and bead type count after merging results from all threads
     RDF rdf;
-    // Bead type counts
     std::map<char, int> bead_type_count;
     // KDE Bandwidth
     auto w = _inputs.rdf[3];
+
+    // Compute distributions for different pair types
     #pragma omp parallel
     {
-        // Local rdf to prevent race conditions
+        // Local rdf and bead type to prevent race conditions
         RDF rdf_;
-        // Local bead type count to prevent race conditions
         std::map<char, int> bead_type_count_;
-        // Find different pair types and their distribution
+
         #pragma omp for
         for (size_t i = 0; i < _cg_data.beads.size(); i++) {
             char type_i = _cg_data.beads[i].name;
@@ -102,18 +103,19 @@ void KDE::calculate_bdf(int timestep) {
     // If there is no bond return
     if (_cg_data.bead_bonds.size() == 0)
         return;
+    // Final bdf and bond type count after merging results from all threads
     BDF bdf;
-    // Count and store number of each bond type
     std::map<std::tuple<char, char>, int> bond_type_count;
     // KDE Bandwidth
     auto w = _inputs.bdf[3];
-    // Find different bond types and their distribution
+
+    // Compute distributions for different bond types
     #pragma omp parallel
     {
-        // Local rdf to prevent race conditions
+        // Local bdf and bond type to prevent race conditions
         BDF bdf_;
-        // Local bead type count to prevent race conditions
         std::map<std::tuple<char, char>, int> bond_type_count_;
+
         #pragma omp for
         for (size_t i=0; i<_cg_data.bead_bonds.size(); i++) {
             for (auto j : _cg_data.bead_bonds[i]) {
@@ -164,12 +166,13 @@ void KDE::calculate_adf(int timestep) {
     // If there is no angle return
     if (_cg_data.bead_angles.size() == 0)
         return;
-    // Final adf and angle type count after adding results from all threads
+    // Final adf and angle type count after merging results from all threads
     ADF adf;
     std::map<std::tuple<char, char, char>, int> angle_type_count;
     // KDE Bandwidth
     auto w = _inputs.adf[3];
-    // Find different angle types and their distribution in parallel
+
+    // Compute distributions for different angle types
     #pragma omp parallel
     {
         // Local adf and angle type to prevent race conditions
@@ -230,12 +233,13 @@ void KDE::calculate_tdf(int timestep) {
     // If there is no torsion return
     if (_cg_data.bead_torsions.size() == 0)
         return;
-    // Final tdf and torsion angle type count after adding results from all threads
+    // Final tdf and torsion angle type count after merging results from all threads
     TDF tdf;
     std::map<std::tuple<char, char, char, char>, int> torsion_type_count;
     // KDE Bandwidth
     auto w = _inputs.tdf[3];
-    // Find different torsion types and their distribution in parallel
+
+    // Compute distributions for different torsion angle types
     #pragma omp parallel
     {
         // Local tdf and torsion angle type to prevent race conditions
@@ -311,18 +315,20 @@ void KDE::calculate_idf(int timestep) {
     // If there is no improper return
     if (_cg_data.bead_impropers.size() == 0)
         return;
-    // Final idf and improper angle type count after adding results from all threads
+    // Final idf and improper angle type count after merging results from all threads
     IDF idf;
     std::map<std::tuple<char, char, char, char>, int> improper_type_count;
     // KDE Bandwidth
     auto w = _inputs.idf[3];
-    // Find different angle types and their distribution
+
+    // Compute distributions for different improper angle types
     #pragma omp parallel
     {
         // Local idf and improper angle type to prevent race conditions
         IDF idf_;
         std::map<std::tuple<char, char, char, char>, int> improper_type_count_;
 
+        #pragma omp for
         for (auto i_type : _cg_data.bead_impropers) {
             int i = std::get<0>(i_type);
             int j = std::get<1>(i_type);
