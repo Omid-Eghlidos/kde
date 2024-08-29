@@ -17,7 +17,7 @@ LAMMPS data file via write_data, version 3 Mar 2020, timestep = 10000000
 
 Masses
 
-1 1.00797 	# hc
+1 1.00797	# hc
 2 12.0112 	# c3
 3 12.0112 	# c1
 4 12.0112 	# c2
